@@ -1,84 +1,16 @@
 import Globe, { type GlobeMethods } from "react-globe.gl";
 import useDayNight from "../hooks/useDayNight";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-	degreesLat,
-	degreesLong,
-	eciToGeodetic,
-	gstime,
-	propagate,
-	twoline2satrec,
-} from "satellite.js";
+import { useCallback, useRef } from "react";
 import { Mesh, MeshBasicMaterial, SphereGeometry } from "three";
-
-type SatelliteData = {
-	name: string;
-	lat: number;
-	lng: number;
-	alt: number;
-	radius: number;
-	color: string;
-};
+import useSatellites, { type SatelliteData } from "../hooks/useSatellites";
 
 const World = () => {
 	const { dt, globeMaterial } = useDayNight();
-	const globeRef = useRef<GlobeMethods | undefined>(undefined);
-	const [globeData, setGlobeData] = useState<SatelliteData[]>([]);
 	const sampleData = [
 		"ISS (ZARYA)\n1 25544U 98067A   26241.53070935  .00006055  00000+0  11827-3 0  9994\n2 25544  51.6318 297.0786 0005001  87.3553 272.8007 15.48928101583126",
 	];
-
-	useEffect(() => {
-		const satRecords = sampleData.map((sat) => ({
-			name: "ISS (ZARYA)",
-			satrec: twoline2satrec(
-				"1 25544U 98067A   26241.53070935  .00006055  00000+0  11827-3 0  9994",
-				"2 25544  51.6318 297.0786 0005001  87.3553 272.8007 15.48928101583126",
-			),
-		}));
-
-		const updateAllPos = () => {
-			const now = new Date();
-			const EARTH_RADIUS_KM = 6371;
-
-			const updatedSats = satRecords
-				.map((sat) => {
-					const posAndVelo = propagate(sat.satrec, now);
-					const posEci = posAndVelo?.position;
-
-					if (posEci) {
-						const gmst = gstime(now);
-						const posGd = eciToGeodetic(posEci, gmst);
-
-						const lat = degreesLat(posGd.latitude);
-						const lng = degreesLong(posGd.longitude);
-
-						const altFactor = posGd.height / EARTH_RADIUS_KM;
-
-						console.log("name: " + sat.name);
-						console.log("lat: " + lat);
-						console.log("lng: " + lng);
-						console.log("alt: " + altFactor);
-
-						return {
-							name: sat.name,
-							lat: lat,
-							lng: lng,
-							alt: altFactor,
-							radius: 0.01,
-							color: "green",
-						};
-					}
-					return null;
-				})
-				.filter((sat) => sat !== null);
-			setGlobeData(updatedSats);
-		};
-		updateAllPos();
-
-		const interval = setInterval(updateAllPos, 1000);
-		return () => clearInterval(interval);
-	}, []);
+	const { globeData } = useSatellites(sampleData);
+	const globeRef = useRef<GlobeMethods | undefined>(undefined);
 
 	return (
 		<div>
