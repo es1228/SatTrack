@@ -17,8 +17,18 @@ export type SatelliteData = {
 	color: string;
 };
 
+export type OrbitPath = {
+	name: string;
+	color: string;
+	coords: { lat: number; lng: number; alt: number }[];
+};
+
 const useSatellites = (data: string[]) => {
 	const [globeData, setGlobeData] = useState<SatelliteData[]>([]);
+	const [pathData, setPathData] = useState<OrbitPath[]>([]);
+
+	const EARTH_RADIUS_KM = 6371;
+
 	useEffect(() => {
 		const satRecords = data.map((sat) => {
 			const lines = sat.split("\n");
@@ -30,7 +40,6 @@ const useSatellites = (data: string[]) => {
 
 		const updateAllPos = () => {
 			const now = new Date();
-			const EARTH_RADIUS_KM = 6371;
 
 			const updatedSats = satRecords
 				.map((sat) => {
@@ -46,11 +55,6 @@ const useSatellites = (data: string[]) => {
 
 						const altFactor = posGd.height / EARTH_RADIUS_KM;
 
-						console.log("name: " + sat.name);
-						console.log("lat: " + lat);
-						console.log("lng: " + lng);
-						console.log("alt: " + altFactor);
-
 						return {
 							name: sat.name,
 							lat: lat,
@@ -63,6 +67,7 @@ const useSatellites = (data: string[]) => {
 					return null;
 				})
 				.filter((sat) => sat !== null);
+
 			setGlobeData(updatedSats);
 		};
 		updateAllPos();
@@ -71,6 +76,55 @@ const useSatellites = (data: string[]) => {
 		return () => clearInterval(interval);
 	}, []);
 
-	return { globeData };
+	useEffect(() => {
+		const satRecords = data.map((sat) => {
+			const lines = sat.split("\n");
+			return {
+				name: lines[0],
+				satrec: twoline2satrec(lines[1], lines[2]),
+			};
+		});
+
+		const updateAllPaths = () => {
+			const allOrbitPaths = satRecords.map((sat) => {
+				const orbitCoords = [];
+				const now = new Date();
+
+				for (let i = 0; i <= 60; i++) {
+					const futureTime = new Date(now.getTime() + i * 60000);
+					const futurePosAndVelo = propagate(sat.satrec, futureTime);
+					const posEci = futurePosAndVelo?.position;
+
+					if (posEci) {
+						const gmst = gstime(futureTime);
+						const posGd = eciToGeodetic(posEci, gmst);
+
+						const lat = degreesLat(posGd.latitude);
+						const lng = degreesLong(posGd.longitude);
+
+						const altFactor = posGd.height / EARTH_RADIUS_KM;
+
+						orbitCoords.push({
+							lat: lat,
+							lng: lng,
+							alt: altFactor,
+						});
+					}
+				}
+				return {
+					name: sat.name,
+					color: "rgba(0, 255, 0, 0.5)",
+					coords: orbitCoords,
+				};
+			});
+			setPathData(allOrbitPaths);
+		};
+        updateAllPaths();
+
+		const interval = setInterval(updateAllPaths, 300000);
+		return () => clearInterval(interval);
+	}, []);
+
+	return { globeData, pathData };
 };
 export default useSatellites;
