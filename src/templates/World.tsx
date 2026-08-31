@@ -1,20 +1,33 @@
 import Globe, { type GlobeMethods } from "react-globe.gl";
 import useDayNight from "../hooks/useDayNight";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import useSatellites, {
 	type OrbitPath,
 	type SatelliteData,
 } from "../hooks/useSatellites";
 import rawTle from "../data/sample.tle?raw";
+import fullTle from "../data/lowDetail.tle?raw";
 import { splitIntoLineChunks } from "../utils/splitIntoLineChunks";
+import useParticles from "../hooks/useParticles";
 
 const World = () => {
 	const { dt, globeMaterial } = useDayNight();
 
 	const sampleData = useMemo(() => splitIntoLineChunks(rawTle), []);
+	const ldData = useMemo(() => splitIntoLineChunks(fullTle), []);
+
+	const [time, setTime] = useState(new Date());
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setTime(new Date())
+		}, 1000);
+
+		return () => clearInterval(interval);
+	}, [])
 
 	const { globeData, pathData } = useSatellites(sampleData);
+	const { particlesData } = useParticles(ldData, time);
 	const globeRef = useRef<GlobeMethods | undefined>(undefined);
 
 	return (
@@ -32,6 +45,12 @@ const World = () => {
 						),
 					[globeMaterial],
 				)}
+				particlesData={particlesData}
+				particleLat={(d) => (d as SatelliteData).lat}
+				particleLng={(d) => (d as SatelliteData).lng}
+				particleAltitude={(d) => (d as SatelliteData).alt}
+				particlesColor={useCallback(() => 'palegreen', [])}
+				particleLabel={(d) => (d as SatelliteData).text}
 				objectsData={globeData as SatelliteData[]}
 				objectLat={(d) => (d as SatelliteData).lat}
 				objectLng={(d) => (d as SatelliteData).lng}

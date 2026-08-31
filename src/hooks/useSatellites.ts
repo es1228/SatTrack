@@ -26,7 +26,7 @@ export type OrbitPath = {
 	coords: { lat: number; lng: number; alt: number }[];
 };
 
-type City = {
+export type City = {
 	latitude: number;
 	longitude: number;
 	name: string;
@@ -65,7 +65,7 @@ const useSatellites = (satellites: string[]) => {
 						const lat = degreesLat(posGd.latitude);
 						const lng = degreesLong(posGd.longitude);
 
-						const altFactor = posGd.height / EARTH_RADIUS_KM;
+						const alt = posGd.height / EARTH_RADIUS_KM;
 
 						const closestCity: City = nearestCity({ latitude: lat, longitude: lng });
 
@@ -82,7 +82,7 @@ const useSatellites = (satellites: string[]) => {
                             Altitude: ${Math.round(posGd.height)}km`,
 							lat: lat,
 							lng: lng,
-							alt: altFactor,
+							alt: alt,
 							radius: 0.01,
 							color: "green",
 						};
@@ -118,12 +118,12 @@ const useSatellites = (satellites: string[]) => {
 						const lat = degreesLat(posGd.latitude);
 						const lng = degreesLong(posGd.longitude);
 
-						const altFactor = posGd.height / EARTH_RADIUS_KM;
+						const alt = posGd.height / EARTH_RADIUS_KM;
 
 						orbitCoords.push({
 							lat: lat,
 							lng: lng,
-							alt: altFactor,
+							alt: alt,
 						});
 					}
 				}
