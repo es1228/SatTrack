@@ -7,9 +7,12 @@ import {
 	propagate,
 	twoline2satrec,
 } from "satellite.js";
+// @ts-ignore
+import { nearestCity } from "cityjs";
 
 export type SatelliteData = {
 	name: string;
+	text: string;
 	lat: number;
 	lng: number;
 	alt: number;
@@ -23,21 +26,30 @@ export type OrbitPath = {
 	coords: { lat: number; lng: number; alt: number }[];
 };
 
-const useSatellites = (data: string[]) => {
+type City = {
+	latitude: number;
+	longitude: number;
+	name: string;
+	countryCode: string;
+	distance: number;
+};
+
+const useSatellites = (satellites: string[]) => {
 	const [globeData, setGlobeData] = useState<SatelliteData[]>([]);
 	const [pathData, setPathData] = useState<OrbitPath[]>([]);
 
 	const EARTH_RADIUS_KM = 6371;
 
-	useEffect(() => {
-		const satRecords = data.map((sat) => {
-			const lines = sat.split("\n");
-			return {
-				name: lines[0],
-				satrec: twoline2satrec(lines[1], lines[2]),
-			};
-		});
+	const satRecords = satellites.map((sat) => {
+		const lines = sat.split("\n");
+		return {
+			name: lines[0],
+			satrec: twoline2satrec(lines[1], lines[2]),
+		};
+	});
 
+	// position updates
+	useEffect(() => {
 		const updateAllPos = () => {
 			const now = new Date();
 
@@ -55,8 +67,19 @@ const useSatellites = (data: string[]) => {
 
 						const altFactor = posGd.height / EARTH_RADIUS_KM;
 
+						const closestCity: City = nearestCity({ latitude: lat, longitude: lng });
+
 						return {
 							name: sat.name,
+							text: `<b>Name: ${sat.name}<b>
+                            <br/>
+                            Latitude: ${lat.toFixed(2)}°
+                            <br/>
+                            Longitude: ${lng.toFixed(2)}°
+							<br/>
+                            City: ${closestCity.name}, ${closestCity.countryCode}
+                            <br/>
+                            Altitude: ${Math.round(posGd.height)}km`,
 							lat: lat,
 							lng: lng,
 							alt: altFactor,
@@ -76,15 +99,8 @@ const useSatellites = (data: string[]) => {
 		return () => clearInterval(interval);
 	}, []);
 
+	// path updates
 	useEffect(() => {
-		const satRecords = data.map((sat) => {
-			const lines = sat.split("\n");
-			return {
-				name: lines[0],
-				satrec: twoline2satrec(lines[1], lines[2]),
-			};
-		});
-
 		const updateAllPaths = () => {
 			const allOrbitPaths = satRecords.map((sat) => {
 				const orbitCoords = [];
@@ -119,9 +135,9 @@ const useSatellites = (data: string[]) => {
 			});
 			setPathData(allOrbitPaths);
 		};
-        updateAllPaths();
+		updateAllPaths();
 
-		const interval = setInterval(updateAllPaths, 300000);
+		const interval = setInterval(updateAllPaths, 1000);
 		return () => clearInterval(interval);
 	}, []);
 

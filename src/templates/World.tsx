@@ -1,17 +1,19 @@
 import Globe, { type GlobeMethods } from "react-globe.gl";
 import useDayNight from "../hooks/useDayNight";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import useSatellites, {
 	type OrbitPath,
 	type SatelliteData,
 } from "../hooks/useSatellites";
+import rawTle from "../data/sample.tle?raw";
+import { splitIntoLineChunks } from "../utils/splitIntoLineChunks";
 
 const World = () => {
 	const { dt, globeMaterial } = useDayNight();
-	const sampleData = [
-		"ISS (ZARYA)\n1 25544U 98067A   26241.53070935  .00006055  00000+0  11827-3 0  9994\n2 25544  51.6318 297.0786 0005001  87.3553 272.8007 15.48928101583126",
-	];
+
+	const sampleData = useMemo(() => splitIntoLineChunks(rawTle), []);
+
 	const { globeData, pathData } = useSatellites(sampleData);
 	const globeRef = useRef<GlobeMethods | undefined>(undefined);
 
@@ -30,7 +32,7 @@ const World = () => {
 						),
 					[globeMaterial],
 				)}
-				objectsData={globeData}
+				objectsData={globeData as SatelliteData[]}
 				objectLat={(d) => (d as SatelliteData).lat}
 				objectLng={(d) => (d as SatelliteData).lng}
 				objectAltitude={(d) => (d as SatelliteData).alt}
@@ -42,14 +44,7 @@ const World = () => {
 						}),
 					)
 				}
-				labelsData={globeData}
-				labelLat={(d) => (d as SatelliteData).lat}
-				labelLng={(d) => (d as SatelliteData).lng}
-				labelAltitude={(d) => (d as SatelliteData).alt}
-				labelText={(d) => (d as SatelliteData).name}
-				labelSize={0.4}
-				labelDotRadius={0}
-				labelColor={() => "white"}
+				objectLabel={(d) => (d as SatelliteData).text}
 				pathsData={pathData}
 				pathPoints="coords"
 				pathPointLat={(p) => p.lat}
