@@ -1,7 +1,7 @@
 import Globe, { type GlobeMethods } from "react-globe.gl";
 import useDayNight from "../hooks/useDayNight";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Mesh, MeshBasicMaterial, SphereGeometry } from "three";
+import { Group, Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import useSatellites, {
 	type OrbitPath,
 	type SatelliteData,
@@ -10,6 +10,7 @@ import rawTle from "../data/sample.tle?raw";
 import fullTle from "../data/lowDetail.tle?raw";
 import { splitIntoLineChunks } from "../utils/splitIntoLineChunks";
 import useParticles from "../hooks/useParticles";
+import { DRACOLoader, GLTFLoader } from "three/examples/jsm/Addons.js";
 
 const World = () => {
 	const { dt, globeMaterial } = useDayNight();
@@ -20,15 +21,51 @@ const World = () => {
 	const [time, setTime] = useState(new Date());
 	useEffect(() => {
 		const interval = setInterval(() => {
-			setTime(new Date())
-		}, 1000);
+			setTime(new Date());
+		}, 3000);
 
 		return () => clearInterval(interval);
-	}, [])
+	}, []);
 
 	const { globeData, pathData } = useSatellites(sampleData);
 	const { particlesData } = useParticles(ldData, time);
 	const globeRef = useRef<GlobeMethods | undefined>(undefined);
+
+	const [issScene, setISSScene] = useState<Group | null>(null);
+	useEffect(() => {
+		const dracoLoader = new DRACOLoader();
+		dracoLoader.setDecoderPath(
+			"https://www.gstatic.com/draco/versioned/decoders/1.5.6/",
+		);
+
+		const loader = new GLTFLoader();
+		loader.setDRACOLoader(dracoLoader);
+
+		loader.load(
+			`${import.meta.env.BASE_URL}3d/iss.glb`,
+			(gltf) => {
+				gltf.scene.scale.set(0.1, 0.1, 0.1);
+				setISSScene(gltf.scene);
+			},
+			undefined,
+			(error) => {
+				console.error("Unable to load ISS 3D Model:", error);
+			},
+		);
+	}, []);
+
+	const handleZoom = useCallback(
+		({ lng, lat }: {lng: number, lat: number}) =>
+			globeMaterial?.uniforms.globeRotation.value.set(lng, lat),
+		[globeMaterial],
+	);
+
+	const cachedISSObj = useMemo(() => {
+		if (!issScene) return null;
+		return issScene.clone();
+	}, [issScene])
+
+	if (!globeData || globeData.length === 0) return null;
 
 	return (
 		<div>
@@ -37,32 +74,35 @@ const World = () => {
 				globeMaterial={globeMaterial}
 				backgroundImageUrl="//cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png"
 				// Update globe rotation on shader
-				onZoom={useCallback(
-					({ lng, lat }) =>
-						globeMaterial?.uniforms.globeRotation.value.set(
-							lng,
-							lat,
-						),
-					[globeMaterial],
-				)}
+				onZoom={handleZoom}
 				particlesData={particlesData}
 				particleLat={(d) => (d as SatelliteData).lat}
 				particleLng={(d) => (d as SatelliteData).lng}
 				particleAltitude={(d) => (d as SatelliteData).alt}
-				particlesColor={useCallback(() => 'palegreen', [])}
+				particlesColor={() => "green"}
 				particleLabel={(d) => (d as SatelliteData).text}
 				objectsData={globeData as SatelliteData[]}
 				objectLat={(d) => (d as SatelliteData).lat}
 				objectLng={(d) => (d as SatelliteData).lng}
 				objectAltitude={(d) => (d as SatelliteData).alt}
-				customThreeObject={(d) =>
-					new Mesh(
-						new SphereGeometry((d as SatelliteData).radius),
-						new MeshBasicMaterial({
-							color: (d as SatelliteData).color,
-						}),
-					)
-				}
+				objectThreeObject={(d) => {
+					const sat = d as SatelliteData;
+
+					// console.log(
+					// 	"Name: " + sat.name,
+					// 	"ISS Loaded: " + !!issScene,
+					// );
+
+					if (sat.name.trim() === "ISS (ZARYA)" && cachedISSObj)
+						return cachedISSObj;
+					else
+						return new Mesh(
+							new SphereGeometry(sat.radius),
+							new MeshBasicMaterial({
+								color: sat.color,
+							}),
+						);
+				}}
 				objectLabel={(d) => (d as SatelliteData).text}
 				pathsData={pathData}
 				pathPoints="coords"

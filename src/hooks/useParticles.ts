@@ -52,9 +52,9 @@ const useParticles = (satellites: string[], time: Date) => {
                             Altitude: ${Math.round(gdPos.height)}km`,
 						};
 					}
-					return sat;
+					return null;
 				})
-				.filter(Boolean),
+				.filter((sat) => sat !== null),
 		];
 	}, [satRecords, time]);
 
