@@ -77,7 +77,7 @@ const useSatellites = (satellites: string[]) => {
                             <br/>
                             Longitude: ${lng.toFixed(2)}°
 							<br/>
-                            City: ${closestCity.name}, ${closestCity.countryCode}
+                            Nearest City: ${closestCity.name}, ${closestCity.countryCode}
                             <br/>
                             Altitude: ${Math.round(posGd.height)}km`,
 							lat: lat,

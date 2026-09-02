@@ -1,7 +1,7 @@
 import Globe, { type GlobeMethods } from "react-globe.gl";
 import useDayNight from "../hooks/useDayNight";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Group, Mesh, MeshBasicMaterial, SphereGeometry } from "three";
+import { Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import useSatellites, {
 	type OrbitPath,
 	type SatelliteData,
@@ -10,85 +10,39 @@ import rawTle from "../data/sample.tle?raw";
 import fullTle from "../data/lowDetail.tle?raw";
 import { splitIntoLineChunks } from "../utils/splitIntoLineChunks";
 import useParticles from "../hooks/useParticles";
-import { DRACOLoader, GLTFLoader } from "three/examples/jsm/Addons.js";
+import useTracker from "../hooks/useTracker";
+import useISSModel from "../hooks/useISSModel";
 
 const World = () => {
 	const { dt, globeMaterial } = useDayNight();
 
+	// high-detail satellites (3d) and low detail satellites (particles)
 	const sampleData = useMemo(() => splitIntoLineChunks(rawTle), []);
 	const ldData = useMemo(() => splitIntoLineChunks(fullTle), []);
 
-	const [time, setTime] = useState(new Date());
+	// update particle satellites every 3 seconds
+	const [particlesUpdateTime, setParticlesUpdateTime] = useState(new Date());
+
 	useEffect(() => {
 		const interval = setInterval(() => {
-			setTime(new Date());
+			setParticlesUpdateTime(new Date());
 		}, 3000);
 
 		return () => clearInterval(interval);
 	}, []);
 
+	// high res satellites data + paths
 	const { globeData, pathData } = useSatellites(sampleData);
-	const { particlesData } = useParticles(ldData, time);
+
+	// low res satellites (particles) data
+	const { particlesData } = useParticles(ldData, particlesUpdateTime);
+
 	const globeRef = useRef<GlobeMethods | undefined>(undefined);
 
-	const [issScene, setISSScene] = useState<Group | null>(null);
-	useEffect(() => {
-		const dracoLoader = new DRACOLoader();
-		dracoLoader.setDecoderPath(
-			"https://www.gstatic.com/draco/versioned/decoders/1.5.6/",
-		);
+	// iss 3d model
+	const { issScene } = useISSModel();
 
-		const loader = new GLTFLoader();
-		loader.setDRACOLoader(dracoLoader);
-
-		loader.load(
-			`${import.meta.env.BASE_URL}3d/iss.glb`,
-			(gltf) => {
-				gltf.scene.scale.set(0.1, 0.1, 0.1);
-				setISSScene(gltf.scene);
-			},
-			undefined,
-			(error) => {
-				console.error("Unable to load ISS 3D Model:", error);
-			},
-		);
-	}, []);
-
-	const trackedSatRef = useRef<SatelliteData | null>(null);
-
-	useEffect(() => {
-		let animationFrameID: number;
-
-		const updateTracking = () => {
-			if (trackedSatRef.current && globeRef.current) {
-				const currentTracked = trackedSatRef.current;
-
-				const currentSat = globeData.find(
-					(s) => s.name === currentTracked.name,
-				);
-
-				if (currentSat) {
-					const coords = globeRef.current.getCoords(
-						currentSat.lat,
-						currentSat.lng,
-						currentSat.alt,
-					);
-
-					if (coords) {
-						globeRef.current.pointOfView({
-							lat: currentSat.lat,
-							lng: currentSat.lng,
-							altitude: currentSat.alt + 0.1,
-						}, 300);
-					}
-				}
-			}
-			animationFrameID = requestAnimationFrame(updateTracking);
-		};
-		animationFrameID = requestAnimationFrame(updateTracking);
-
-		return () => cancelAnimationFrame(animationFrameID);
-	}, [globeData]);
+	const [trackedSat, setTrackedSat] = useTracker(globeData, globeRef);
 
 	const handleZoom = useCallback(
 		({ lng, lat }: { lng: number; lat: number }) =>
@@ -96,6 +50,7 @@ const World = () => {
 		[globeMaterial],
 	);
 
+	// cache iss 3d model to improve performance
 	const cachedISSObj = useMemo(() => {
 		if (!issScene) return null;
 		return issScene.clone();
@@ -129,7 +84,7 @@ const World = () => {
 					// 	"ISS Loaded: " + !!issScene,
 					// );
 
-					if (sat.name.trim() === "ISS (ZARYA)" && cachedISSObj)
+					if (sat.name.includes("ISS") && cachedISSObj)
 						return cachedISSObj;
 					else
 						return new Mesh(
@@ -140,10 +95,7 @@ const World = () => {
 						);
 				}}
 				objectLabel={(d) => (d as SatelliteData).text}
-				onObjectClick={(d) => {
-					const sat = d as SatelliteData;
-					trackedSatRef.current = sat;
-				}}
+				onObjectClick={(d) => setTrackedSat(d as SatelliteData)}
 				pathsData={pathData}
 				pathPoints="coords"
 				pathPointLat={(p) => p.lat}
@@ -155,8 +107,11 @@ const World = () => {
 			<div id="time" className="fixed bottom-4 left-4 z-50 text-white">
 				{new Date(dt).toLocaleString()}
 			</div>
-			<div id="tracking" className="fixed bottom-4 right-4 z-50 text-white">
-				{trackedSatRef.current && `Currently Tracking: ${trackedSatRef.current?.name.trim()}`}
+			<div
+				id="tracking"
+				className="fixed right-4 bottom-4 z-50 text-white"
+			>
+				{trackedSat && `Currently Tracking: ${trackedSat.name.trim()}`}
 			</div>
 		</div>
 	);
