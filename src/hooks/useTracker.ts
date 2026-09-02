@@ -10,7 +10,6 @@ const useTracker = (globeData: SatelliteData[], globeRef: RefObject<GlobeMethods
 
 		const updateTracking = () => {
 			if (trackedSat && globeRef.current) {;
-
 				const currentSat = globeData.find(
 					(s) => s.name === trackedSat.name,
 				);
@@ -27,7 +26,7 @@ const useTracker = (globeData: SatelliteData[], globeRef: RefObject<GlobeMethods
 							{
 								lat: currentSat.lat,
 								lng: currentSat.lng,
-								altitude: currentSat.alt + 0.1,
+								altitude: currentSat.alt + 0.5,
 							},
 							300,
 						);

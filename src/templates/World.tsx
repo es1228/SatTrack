@@ -2,18 +2,18 @@ import Globe, { type GlobeMethods } from "react-globe.gl";
 import useDayNight from "../hooks/useDayNight";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Mesh, MeshBasicMaterial, SphereGeometry } from "three";
-import useSatellites, {
-	type OrbitPath,
-	type SatelliteData,
-} from "../hooks/useSatellites";
+import useSatellites, { type SatelliteData } from "../hooks/useSatellites";
 import rawTle from "../data/sample.tle?raw";
 import fullTle from "../data/lowDetail.tle?raw";
 import { splitIntoLineChunks } from "../utils/splitIntoLineChunks";
 import useParticles from "../hooks/useParticles";
 import useTracker from "../hooks/useTracker";
 import useISSModel from "../hooks/useISSModel";
+import useSatellitePath, { type OrbitPath } from "../hooks/useSatellitePath";
 
 const World = () => {
+	const globeRef = useRef<GlobeMethods | undefined>(undefined);
+
 	const { dt, globeMaterial } = useDayNight();
 
 	// high-detail satellites (3d) and low detail satellites (particles)
@@ -32,17 +32,16 @@ const World = () => {
 	}, []);
 
 	// high res satellites data + paths
-	const { globeData, pathData } = useSatellites(sampleData);
+	const { globeData } = useSatellites(sampleData);
+
+	const [trackedSat, setTrackedSat] = useTracker(globeData, globeRef);
+	const { pathData } = useSatellitePath(trackedSat);
 
 	// low res satellites (particles) data
 	const { particlesData } = useParticles(ldData, particlesUpdateTime);
 
-	const globeRef = useRef<GlobeMethods | undefined>(undefined);
-
 	// iss 3d model
 	const { issScene } = useISSModel();
-
-	const [trackedSat, setTrackedSat] = useTracker(globeData, globeRef);
 
 	const handleZoom = useCallback(
 		({ lng, lat }: { lng: number; lat: number }) =>
