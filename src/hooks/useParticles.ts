@@ -50,6 +50,8 @@ const useParticles = (satellites: string[], time: Date) => {
                             Longitude: ${lng.toFixed(2)}°
                             <br/>
                             Altitude: ${Math.round(gdPos.height)}km`,
+							radius: 0.01,
+							color: "green"
 						};
 					}
 					return null;

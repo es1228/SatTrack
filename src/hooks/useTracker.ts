@@ -2,7 +2,7 @@ import { useEffect, useState, type RefObject } from "react";
 import { type SatelliteData } from "./useSatellites";
 import type { GlobeMethods } from "react-globe.gl";
 
-const useTracker = (globeData: SatelliteData[], globeRef: RefObject<GlobeMethods | undefined>) => {
+const useTracker = (particlesData: SatelliteData[], globeRef: RefObject<GlobeMethods | undefined>) => {
     const [trackedSat, setTrackedSat] = useState<SatelliteData | null>(null);
 
 	useEffect(() => {
@@ -10,7 +10,7 @@ const useTracker = (globeData: SatelliteData[], globeRef: RefObject<GlobeMethods
 
 		const updateTracking = () => {
 			if (trackedSat && globeRef.current) {;
-				const currentSat = globeData.find(
+				const currentSat = particlesData.find(
 					(s) => s.name === trackedSat.name,
 				);
 
@@ -26,9 +26,8 @@ const useTracker = (globeData: SatelliteData[], globeRef: RefObject<GlobeMethods
 							{
 								lat: currentSat.lat,
 								lng: currentSat.lng,
-								altitude: currentSat.alt + 0.5,
-							},
-							300,
+								//altitude: currentSat.alt + 0.5,
+							}
 						);
 					}
 				}
@@ -38,7 +37,7 @@ const useTracker = (globeData: SatelliteData[], globeRef: RefObject<GlobeMethods
 		animationFrameID = requestAnimationFrame(updateTracking);
 
 		return () => cancelAnimationFrame(animationFrameID);
-	}, [globeData, trackedSat]);
+	}, [particlesData, trackedSat]);
 
     return [trackedSat, setTrackedSat] as const;
 };

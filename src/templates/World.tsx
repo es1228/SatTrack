@@ -34,11 +34,14 @@ const World = () => {
 	// high res satellites data + paths
 	const { globeData } = useSatellites(sampleData);
 
-	const [trackedSat, setTrackedSat] = useTracker(globeData, globeRef);
-	const { pathData } = useSatellitePath(trackedSat);
-
 	// low res satellites (particles) data
 	const { particlesData } = useParticles(ldData, particlesUpdateTime);
+
+	const [trackedSat, setTrackedSat] = useTracker(
+		particlesData.flat().filter((s) => s !== null),
+		globeRef,
+	);
+	const { pathData } = useSatellitePath(trackedSat);
 
 	// iss 3d model
 	const { issScene } = useISSModel();
@@ -94,6 +97,7 @@ const World = () => {
 						);
 				}}
 				objectLabel={(d) => (d as SatelliteData).text}
+				onParticleClick={(d) => setTrackedSat(d as SatelliteData)}
 				onObjectClick={(d) => setTrackedSat(d as SatelliteData)}
 				pathsData={pathData}
 				pathPoints="coords"
@@ -110,6 +114,7 @@ const World = () => {
 				id="tracking"
 				className="fixed right-4 bottom-4 z-50 text-white"
 			>
+				<button onClick={() => setTrackedSat(null)} className="bg-neutral-950/40 backdrop-blur-3xl rounded-3xl p-2 mr-2 hover:cursor-pointer">{trackedSat && `Unlock`}</button>
 				{trackedSat && `Currently Tracking: ${trackedSat.name.trim()}`}
 			</div>
 		</div>
