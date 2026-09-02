@@ -54,8 +54,44 @@ const World = () => {
 		);
 	}, []);
 
+	const trackedSatRef = useRef<SatelliteData | null>(null);
+
+	useEffect(() => {
+		let animationFrameID: number;
+
+		const updateTracking = () => {
+			if (trackedSatRef.current && globeRef.current) {
+				const currentTracked = trackedSatRef.current;
+
+				const currentSat = globeData.find(
+					(s) => s.name === currentTracked.name,
+				);
+
+				if (currentSat) {
+					const coords = globeRef.current.getCoords(
+						currentSat.lat,
+						currentSat.lng,
+						currentSat.alt,
+					);
+
+					if (coords) {
+						globeRef.current.pointOfView({
+							lat: currentSat.lat,
+							lng: currentSat.lng,
+							altitude: currentSat.alt + 0.1,
+						}, 300);
+					}
+				}
+			}
+			animationFrameID = requestAnimationFrame(updateTracking);
+		};
+		animationFrameID = requestAnimationFrame(updateTracking);
+
+		return () => cancelAnimationFrame(animationFrameID);
+	}, [globeData]);
+
 	const handleZoom = useCallback(
-		({ lng, lat }: {lng: number, lat: number}) =>
+		({ lng, lat }: { lng: number; lat: number }) =>
 			globeMaterial?.uniforms.globeRotation.value.set(lng, lat),
 		[globeMaterial],
 	);
@@ -63,7 +99,7 @@ const World = () => {
 	const cachedISSObj = useMemo(() => {
 		if (!issScene) return null;
 		return issScene.clone();
-	}, [issScene])
+	}, [issScene]);
 
 	if (!globeData || globeData.length === 0) return null;
 
@@ -79,7 +115,7 @@ const World = () => {
 				particleLat={(d) => (d as SatelliteData).lat}
 				particleLng={(d) => (d as SatelliteData).lng}
 				particleAltitude={(d) => (d as SatelliteData).alt}
-				particlesColor={() => "green"}
+				particlesColor={() => "palegreen"}
 				particleLabel={(d) => (d as SatelliteData).text}
 				objectsData={globeData as SatelliteData[]}
 				objectLat={(d) => (d as SatelliteData).lat}
@@ -104,6 +140,10 @@ const World = () => {
 						);
 				}}
 				objectLabel={(d) => (d as SatelliteData).text}
+				onObjectClick={(d) => {
+					const sat = d as SatelliteData;
+					trackedSatRef.current = sat;
+				}}
 				pathsData={pathData}
 				pathPoints="coords"
 				pathPointLat={(p) => p.lat}
@@ -114,6 +154,9 @@ const World = () => {
 			/>
 			<div id="time" className="fixed bottom-4 left-4 z-50 text-white">
 				{new Date(dt).toLocaleString()}
+			</div>
+			<div id="tracking" className="fixed bottom-4 right-4 z-50 text-white">
+				{trackedSatRef.current && `Currently Tracking: ${trackedSatRef.current?.name.trim()}`}
 			</div>
 		</div>
 	);
