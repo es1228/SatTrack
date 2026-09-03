@@ -26,7 +26,7 @@ const useTracker = (
 					globeRef.current.pointOfView({
 						lat: currentSat.lat,
 						lng: currentSat.lng,
-						altitude: currentSat.alt + 0.1,
+						altitude: currentSat.alt + 0.5,
 					});
 				}
 			}

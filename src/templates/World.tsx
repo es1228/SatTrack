@@ -3,8 +3,8 @@ import useDayNight from "../hooks/useDayNight";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import useSatellites from "../hooks/useSatellites";
-import rawTle from "../data/sample.tle?raw";
-import fullTle from "../data/lowDetail.tle?raw";
+import detailedTle from "../data/detailed.tle?raw";
+import fullTle from "../data/full.tle?raw";
 import { splitIntoLineChunks } from "../utils/splitIntoLineChunks";
 import useParticles from "../hooks/useParticles";
 import useTracker from "../hooks/useTracker";
@@ -13,6 +13,7 @@ import useSatellitePath from "../hooks/useSatellitePath";
 import SearchContainer from "../components/SearchContainer";
 import type { OrbitPath, SatelliteData } from "../types/types";
 import TrackerHud from "../components/TrackerHud";
+import useSatelliteModel from "../hooks/useSatelliteModel";
 
 const World = () => {
 	const globeRef = useRef<GlobeMethods | undefined>(undefined);
@@ -20,8 +21,8 @@ const World = () => {
 	const { dt, globeMaterial } = useDayNight();
 
 	// high-detail satellites (3d) and low detail satellites (particles)
-	const sampleData = useMemo(() => splitIntoLineChunks(rawTle), []);
-	const ldData = useMemo(() => splitIntoLineChunks(fullTle), []);
+	const detailedData = useMemo(() => splitIntoLineChunks(detailedTle), []);
+	const fullData = useMemo(() => splitIntoLineChunks(fullTle), []);
 
 	// update particle satellites every 3 seconds
 	const [particlesUpdateTime, setParticlesUpdateTime] = useState(new Date());
@@ -34,32 +35,40 @@ const World = () => {
 		return () => clearInterval(interval);
 	}, []);
 
-	// high res satellites data + paths
-	const { globeData } = useSatellites(sampleData);
-
 	// low res satellites (particles) data
-	const { particlesData } = useParticles(ldData, particlesUpdateTime);
+	const { particlesData } = useParticles(fullData, particlesUpdateTime);
 
 	const [trackedSat, setTrackedSat] = useTracker(
 		particlesData.flat().filter((s) => s !== null),
 		globeRef,
 	);
+
+	// high res satellites data + paths
+	const { globeData } = useSatellites(detailedData, trackedSat);
+
 	const { pathData } = useSatellitePath(trackedSat);
 
 	// iss 3d model
 	const { issScene } = useISSModel();
-
-	const handleZoom = useCallback(
-		({ lng, lat }: { lng: number; lat: number }) =>
-			globeMaterial?.uniforms.globeRotation.value.set(lng, lat),
-		[globeMaterial],
-	);
 
 	// cache iss 3d model to improve performance
 	const cachedISSObj = useMemo(() => {
 		if (!issScene) return null;
 		return issScene.clone();
 	}, [issScene]);
+
+	// generic satellite model
+	const { satelliteScene } = useSatelliteModel();
+	const cachedSatObj = useMemo(() => {
+		if (!satelliteScene) return null;
+		return satelliteScene.clone();
+	}, [satelliteScene]) 
+
+	const handleZoom = useCallback(
+		({ lng, lat }: { lng: number; lat: number }) =>
+			globeMaterial?.uniforms.globeRotation.value.set(lng, lat),
+		[globeMaterial],
+	);
 
 	if (!globeData || globeData.length === 0) return null;
 
@@ -91,6 +100,8 @@ const World = () => {
 
 					if (sat.name.includes("ISS") && cachedISSObj)
 						return cachedISSObj;
+					else if (sat.name === trackedSat?.name && cachedSatObj)
+						return cachedSatObj;
 					else
 						return new Mesh(
 							new SphereGeometry(sat.radius),
@@ -116,7 +127,10 @@ const World = () => {
 					(p as OrbitPath).type === "dashed" ? 0.0003 : 1
 				}
 			/>
-			<TrackerHud trackedSat={trackedSat} particlesData={particlesData.flat()}/>
+			<TrackerHud
+				trackedSat={trackedSat}
+				particlesData={particlesData.flat()}
+			/>
 			<SearchContainer
 				satelliteRecords={particlesData
 					.flat()
@@ -126,18 +140,19 @@ const World = () => {
 			<div id="time" className="fixed bottom-4 left-4 z-50 text-white">
 				{new Date(dt).toLocaleString()}
 			</div>
-			<div
-				id="tracking"
-				className="fixed right-4 bottom-4 z-50 text-white"
-			>
-				<button
-					onClick={() => setTrackedSat(null)}
-					className="mr-2 rounded-3xl bg-neutral-950/40 p-2 backdrop-blur-3xl hover:cursor-pointer"
+			{trackedSat && (
+				<div
+					id="tracking"
+					className="fixed right-4 bottom-4 z-50 text-white"
 				>
-					{trackedSat && `Unlock`}
-				</button>
-				{trackedSat && `Currently Tracking: ${trackedSat.name.trim()}`}
-			</div>
+					<button
+						onClick={() => setTrackedSat(null)}
+						className="mr-2 rounded-3xl bg-neutral-950/40 p-4 outline-0 backdrop-blur-3xl hover:cursor-pointer"
+					>
+						Unlock (Remove Tracking)
+					</button>
+				</div>
+			)}
 		</div>
 	);
 };

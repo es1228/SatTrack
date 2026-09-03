@@ -19,11 +19,22 @@ const SearchContainer = ({
 			<input
 				type="text"
 				placeholder="Search active satellites..."
-				className="rounded-full bg-neutral-950/80 p-4 outline-0 backdrop-blur-3xl"
+				className="rounded-full bg-neutral-950/40 p-4 outline-0 backdrop-blur-3xl"
 				onChange={(e) => setTextInput(e.target.value)}
+				value={textInput}
+				onKeyDown={(e) => {
+					if (
+						e.key === "Enter" &&
+						searchResults &&
+						searchResults.length > 0
+					) {
+						onClick(searchResults[0]);
+						setTextInput("");
+					}
+				}}
 			/>
 			{textInput && textInput.length > 0 && (
-				<ul className="space-y-1 rounded-3xl bg-neutral-950/80 p-4 backdrop-blur-3xl">
+				<ul className="space-y-1 rounded-3xl bg-neutral-950/40 p-4 backdrop-blur-3xl">
 					{searchResults.map((sat) => (
 						<li
 							key={sat.name}
@@ -31,7 +42,7 @@ const SearchContainer = ({
 								onClick(sat);
 								setTextInput("");
 							}}
-							className="rounded-3xl p-2 hover:cursor-pointer hover:bg-neutral-950/50"
+							className="rounded-3xl p-2 hover:cursor-pointer hover:bg-neutral-950/80"
 						>
 							{sat.name}
 						</li>

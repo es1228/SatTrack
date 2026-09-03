@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	degreesLat,
 	degreesLong,
@@ -11,18 +11,28 @@ import {
 import { nearestCity } from "cityjs";
 import type { City, SatelliteData, SatRecord } from "../types/types";
 
-const useSatellites = (satellites: string[]) => {
+const useSatellites = (
+	satellites: string[],
+	trackedSat: SatelliteData | null,
+) => {
 	const [globeData, setGlobeData] = useState<SatelliteData[]>([]);
 
 	const EARTH_RADIUS_KM = 6371;
 
-	const satRecords: SatRecord[] = satellites.map((sat) => {
-		const lines = sat.split("\n");
-		return {
-			name: lines[0],
-			satrec: twoline2satrec(lines[1], lines[2]),
-		};
-	});
+	const satRecords: SatRecord[] = useMemo(() => {
+		return satellites.map((sat) => {
+			const lines = sat.split("\n");
+			return {
+				name: lines[0],
+				satrec: twoline2satrec(lines[1], lines[2]),
+			};
+		});
+	}, [satellites]);
+
+	useEffect(() => {
+		if (trackedSat) satRecords.push(trackedSat);
+		else satRecords.filter((s) => s !== trackedSat);
+	}, [trackedSat]);
 
 	// position updates
 	useEffect(() => {
@@ -43,7 +53,10 @@ const useSatellites = (satellites: string[]) => {
 
 						const alt = posGd.height / EARTH_RADIUS_KM;
 
-						const closestCity: City = nearestCity({ latitude: lat, longitude: lng });
+						const closestCity: City = nearestCity({
+							latitude: lat,
+							longitude: lng,
+						});
 
 						return {
 							name: sat.name,
@@ -72,9 +85,9 @@ const useSatellites = (satellites: string[]) => {
 		};
 		updateAllPos();
 
-		const interval = setInterval(updateAllPos, 1000);
+		const interval = setInterval(updateAllPos, 3000);
 		return () => clearInterval(interval);
-	}, []);
+	}, [satRecords]);
 
 	return { globeData };
 };

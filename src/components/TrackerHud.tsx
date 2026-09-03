@@ -48,7 +48,7 @@ const TrackerHud = ({ trackedSat, particlesData }: TrackerHudProps) => {
     else classification = "HEO (High Earth Orbit)"
 
 	return (
-		<div className="fixed top-5 right-5 space-y-2 rounded-3xl bg-neutral-950/80 p-4 text-white backdrop-blur-3xl w-80">
+		<div className="fixed top-5 right-5 space-y-2 rounded-3xl bg-neutral-950/40 p-4 text-white backdrop-blur-3xl w-80">
 			<h1 className="text-3xl">{activeSat.name}</h1>
 			<p>Latitude: {activeSat.lat.toFixed(2)}</p>
 			<p>Longitude: {activeSat.lng.toFixed(2)}</p>
