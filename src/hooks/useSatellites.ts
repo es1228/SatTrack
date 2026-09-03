@@ -6,34 +6,10 @@ import {
 	gstime,
 	propagate,
 	twoline2satrec,
-	type SatRec,
 } from "satellite.js";
 // @ts-ignore
 import { nearestCity } from "cityjs";
-
-export type SatelliteData = {
-	name: string;
-	satrec: SatRec;
-	text: string;
-	lat: number;
-	lng: number;
-	alt: number;
-	radius: number;
-	color: string;
-};
-
-export type City = {
-	latitude: number;
-	longitude: number;
-	name: string;
-	countryCode: string;
-	distance: number;
-};
-
-export type SatRecord = {
-	name: string;
-	satrec: SatRec;
-}
+import type { City, SatelliteData, SatRecord } from "../types/types";
 
 const useSatellites = (satellites: string[]) => {
 	const [globeData, setGlobeData] = useState<SatelliteData[]>([]);

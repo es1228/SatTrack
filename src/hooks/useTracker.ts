@@ -1,6 +1,6 @@
 import { useEffect, useState, type RefObject } from "react";
-import { type SatelliteData } from "./useSatellites";
 import type { GlobeMethods } from "react-globe.gl";
+import type { SatelliteData } from "../types/types";
 
 const useTracker = (
 	particlesData: SatelliteData[],

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { SatelliteData } from "./useSatellites";
+import type { SatelliteData } from "../types/types";
 
 const useSatelliteSearch = (
 	satelliteRecords: SatelliteData[],

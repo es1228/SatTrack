@@ -2,15 +2,17 @@ import Globe, { type GlobeMethods } from "react-globe.gl";
 import useDayNight from "../hooks/useDayNight";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Mesh, MeshBasicMaterial, SphereGeometry } from "three";
-import useSatellites, { type SatelliteData } from "../hooks/useSatellites";
+import useSatellites from "../hooks/useSatellites";
 import rawTle from "../data/sample.tle?raw";
 import fullTle from "../data/lowDetail.tle?raw";
 import { splitIntoLineChunks } from "../utils/splitIntoLineChunks";
 import useParticles from "../hooks/useParticles";
 import useTracker from "../hooks/useTracker";
 import useISSModel from "../hooks/useISSModel";
-import useSatellitePath, { type OrbitPath } from "../hooks/useSatellitePath";
+import useSatellitePath from "../hooks/useSatellitePath";
 import SearchContainer from "../components/SearchContainer";
+import type { OrbitPath, SatelliteData } from "../types/types";
+import TrackerHud from "../components/TrackerHud";
 
 const World = () => {
 	const globeRef = useRef<GlobeMethods | undefined>(undefined);
@@ -114,6 +116,7 @@ const World = () => {
 					(p as OrbitPath).type === "dashed" ? 0.0003 : 1
 				}
 			/>
+			<TrackerHud trackedSat={trackedSat} particlesData={particlesData.flat()}/>
 			<SearchContainer
 				satelliteRecords={particlesData
 					.flat()

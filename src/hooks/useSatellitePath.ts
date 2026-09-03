@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { SatelliteData } from "./useSatellites";
 import {
 	degreesLat,
 	degreesLong,
@@ -7,13 +6,7 @@ import {
 	gstime,
 	propagate,
 } from "satellite.js";
-
-export type OrbitPath = {
-	name: string;
-	type: string;
-	color: string;
-	coords: { lat: number; lng: number; alt: number }[];
-};
+import type { OrbitPath, SatelliteData } from "../types/types";
 
 const useSatellitePath = (
 	trackedSat: SatelliteData | null,

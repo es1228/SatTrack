@@ -1,6 +1,6 @@
 import { useState } from "react";
 import useSatelliteSearch from "../hooks/useSatelliteSearch";
-import type { SatelliteData } from "../hooks/useSatellites";
+import type { SatelliteData } from "../types/types";
 
 type SearchContainerProps = {
 	satelliteRecords: SatelliteData[];
@@ -27,7 +27,10 @@ const SearchContainer = ({
 					{searchResults.map((sat) => (
 						<li
 							key={sat.name}
-							onClick={() => onClick(sat)}
+							onClick={() => {
+								onClick(sat);
+								setTextInput("");
+							}}
 							className="rounded-3xl p-2 hover:cursor-pointer hover:bg-neutral-950/50"
 						>
 							{sat.name}
