@@ -5,6 +5,7 @@ import type { SatelliteData } from "../types/types";
 const useTracker = (
 	particlesData: SatelliteData[],
 	globeRef: RefObject<GlobeMethods | undefined>,
+	isLocked: boolean,
 ) => {
 	const [trackedSat, setTrackedSat] = useState<SatelliteData | null>(null);
 
@@ -38,7 +39,7 @@ const useTracker = (
 		let animationFrameID: number;
 
 		const updateTracking = () => {
-			if (trackedSat && globeRef.current) {
+			if (trackedSat && globeRef.current && isLocked) {
 				const currentSat = particlesData.find(
 					(s) => s.name === trackedSat.name,
 				);

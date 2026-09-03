@@ -38,9 +38,13 @@ const World = () => {
 	// low res satellites (particles) data
 	const { particlesData } = useParticles(fullData, particlesUpdateTime);
 
+	// tracking
+	const [isTrackingLocked, setIsTrackingLocked] = useState(true);
+
 	const [trackedSat, setTrackedSat] = useTracker(
 		particlesData.flat().filter((s) => s !== null),
 		globeRef,
+		isTrackingLocked
 	);
 
 	// high res satellites data + paths
@@ -146,10 +150,16 @@ const World = () => {
 					className="fixed right-4 bottom-4 z-50 text-white"
 				>
 					<button
+						onClick={() => setIsTrackingLocked(!isTrackingLocked)}
+						className="mr-2 rounded-3xl bg-neutral-950/40 p-4 outline-0 backdrop-blur-3xl hover:cursor-pointer"
+					>
+						{isTrackingLocked ? "Remove Tracking Lock" : "Lock Tracking"}
+					</button>
+					<button
 						onClick={() => setTrackedSat(null)}
 						className="mr-2 rounded-3xl bg-neutral-950/40 p-4 outline-0 backdrop-blur-3xl hover:cursor-pointer"
 					>
-						Unlock (Remove Tracking)
+						Untrack
 					</button>
 				</div>
 			)}
