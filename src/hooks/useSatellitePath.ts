@@ -10,6 +10,7 @@ import {
 
 export type OrbitPath = {
 	name: string;
+	type: string;
 	color: string;
 	coords: { lat: number; lng: number; alt: number }[];
 };
@@ -54,11 +55,19 @@ const useSatellitePath = (
 					});
 				}
 			}
+			const midIndex = Math.floor(orbitCoords.length / 2)
 			setPathData([
 				{
+					type: "solid",
 					name: trackedSat.name,
-					color: "rgba(0, 255, 0, 0.5)",
-					coords: orbitCoords,
+					color: "blue",
+					coords: orbitCoords.slice(0, midIndex + 1),
+				},
+				{
+					type: "dashed",
+					name: trackedSat.name,
+					color: "blue",
+					coords: orbitCoords.slice(midIndex),
 				},
 			]);
 		};

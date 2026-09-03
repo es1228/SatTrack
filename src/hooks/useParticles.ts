@@ -56,7 +56,7 @@ const useParticles = (satellites: string[], time: Date) => {
 					}
 					return null;
 				})
-				.filter((sat) => sat !== null && !sat.name.includes("ISS")),
+				.filter((sat) => sat !== null),
 		];
 	}, [satRecords, time]);
 

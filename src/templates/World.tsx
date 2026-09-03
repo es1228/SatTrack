@@ -10,6 +10,7 @@ import useParticles from "../hooks/useParticles";
 import useTracker from "../hooks/useTracker";
 import useISSModel from "../hooks/useISSModel";
 import useSatellitePath, { type OrbitPath } from "../hooks/useSatellitePath";
+import SearchContainer from "../components/SearchContainer";
 
 const World = () => {
 	const globeRef = useRef<GlobeMethods | undefined>(undefined);
@@ -106,6 +107,18 @@ const World = () => {
 				pathPointAlt={(p) => p.alt}
 				pathColor={(p: any) => (p as OrbitPath).color}
 				pathTransitionDuration={0}
+				pathDashLength={(p: any) =>
+					(p as OrbitPath).type === "dashed" ? 0.0005 : 1
+				}
+				pathDashGap={(p: any) =>
+					(p as OrbitPath).type === "dashed" ? 0.0003 : 1
+				}
+			/>
+			<SearchContainer
+				satelliteRecords={particlesData
+					.flat()
+					.filter((sat) => sat !== null)}
+				onClick={(sat: SatelliteData) => setTrackedSat(sat)}
 			/>
 			<div id="time" className="fixed bottom-4 left-4 z-50 text-white">
 				{new Date(dt).toLocaleString()}
@@ -114,7 +127,12 @@ const World = () => {
 				id="tracking"
 				className="fixed right-4 bottom-4 z-50 text-white"
 			>
-				<button onClick={() => setTrackedSat(null)} className="bg-neutral-950/40 backdrop-blur-3xl rounded-3xl p-2 mr-2 hover:cursor-pointer">{trackedSat && `Unlock`}</button>
+				<button
+					onClick={() => setTrackedSat(null)}
+					className="mr-2 rounded-3xl bg-neutral-950/40 p-2 backdrop-blur-3xl hover:cursor-pointer"
+				>
+					{trackedSat && `Unlock`}
+				</button>
 				{trackedSat && `Currently Tracking: ${trackedSat.name.trim()}`}
 			</div>
 		</div>
