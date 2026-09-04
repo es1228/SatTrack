@@ -1,75 +1,28 @@
-# React + TypeScript + Vite
+# SatTrack
+A minimalistic 3D Satellite viewer.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Why I Made This
+There are a couple reasons why I made this project
+- Satellites are cool.
+- I've made a flight tracker before and wondered why I couldn't do the same for satellites.
+- Most satellite trackers online seems pretty low-quality or made by a one click AI generator.
 
-Currently, two official plugins are available:
+# Features
+- 3D Globe View - Feel free to traverse freely around the globe to find any satellite in orbit.
+- 3D Satellite Models - View a 3D Model of the ISS or currently tracked satellite.
+- Day/Night Line - Easily see which satellites are visible in daylight or shrouded in night.
+- 16000+ Satellites - View from a list of over 16000 satellites, including the ISS, Starlink, Weather, Research and more satellites. Updates are roughly every 3s.
+- Satellite Search - Looking for a satellite in particular? Simply search for it using the searchbar.
+- Accurate TLE Data - TLE data is updated every 24 hours, ensuring the satellite paths will always be accurate and up to date.
+- HUD-Style View - View information for any satellite by simply clicking on it. Information includes position, altitude, orbital period, and more.
+- Tracking-Style View - Lock a satellite to your screen or simply explore its past and future path to follow its journey.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+# Screenshots
+<img width="1919" height="905" alt="image" src="https://github.com/user-attachments/assets/157c0229-a71f-4d6b-8d2e-f3a7e5eb4ea1" />
+<img width="1919" height="900" alt="image" src="https://github.com/user-attachments/assets/391fc558-bfb0-40c1-9ee5-43c2bd0cdb87" />
 
-## React Compiler
+# Contributing
+Feel free to contribute by making suggestions or simply opening an issue or pull request.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+# License
+GNU GPL v3.
