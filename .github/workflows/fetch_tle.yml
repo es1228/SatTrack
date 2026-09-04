@@ -19,18 +19,18 @@ jobs:
 
       - name: Fetch ISS TLE
         run: |
-          curl -s "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE" > public/data/detailed.tle
+          curl -s "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE" > src/data/detailed.tle
 
       - name: Fetch Full TLE
         run: |
-          curl -s "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle" > public/data/full.tle
+          curl -s "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle" > src/data/full.tle
 
       - name: Commit + Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/detailed.tle
-          git add public/data/full.tle
+          git add src/data/detailed.tle
+          git add src/data/full.tle
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto Update Daily TLE Data" && git push)
 
         
