@@ -9,7 +9,7 @@ import {
 } from "satellite.js";
 // @ts-ignore
 import { nearestCity } from "cityjs";
-import type { City, SatelliteData, SatRecord } from "../types/types";
+import type { City, SatelliteData } from "../types/types";
 
 const useSatellites = (
 	satellites: string[],
@@ -19,13 +19,22 @@ const useSatellites = (
 
 	const EARTH_RADIUS_KM = 6371;
 
-	const satRecords: SatRecord[] = useMemo(() => {
+	const satRecords = useMemo(() => {
 		return satellites.map((sat) => {
 			const lines = sat.split("\n");
-			return {
-				name: lines[0],
-				satrec: twoline2satrec(lines[1], lines[2]),
-			};
+
+			if (!lines || lines.length < 3 || !lines[1] || !lines[2])
+				return null;
+
+			try {
+				return {
+					name: lines[0],
+					satrec: twoline2satrec(lines[1], lines[2]),
+				};
+			} catch {
+				console.warn("Skipping malformed TLE:", lines[0]);
+				return null;
+			}
 		});
 	}, [satellites]);
 
@@ -40,6 +49,7 @@ const useSatellites = (
 			const now = new Date();
 
 			const updatedSats = satRecords
+				.filter((sat) => sat !== null)
 				.map((sat) => {
 					const posAndVelo = propagate(sat.satrec, now);
 					const posEci = posAndVelo?.position;
@@ -78,10 +88,9 @@ const useSatellites = (
 						};
 					}
 					return null;
-				})
-				.filter((sat) => sat !== null);
+				});
 
-			setGlobeData(updatedSats);
+			setGlobeData(updatedSats as SatelliteData[]);
 		};
 		updateAllPos();
 

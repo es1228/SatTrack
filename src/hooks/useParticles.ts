@@ -12,10 +12,19 @@ const useParticles = (satellites: string[], time: Date) => {
 		() =>
 			satellites.map((sat) => {
 				const lines = sat.split("\n");
-				return {
-					name: lines[0],
-					satrec: twoline2satrec(lines[1], lines[2]),
-				};
+
+				if (!lines || lines.length < 3 || !lines[1] || !lines[2])
+					return null;
+				
+				try {
+					return {
+						name: lines[0],
+						satrec: twoline2satrec(lines[1], lines[2]),
+					};
+				} catch {
+					console.warn("Skipping malformed TLE:", lines[0]);
+					return null;
+				}
 			}),
 		[satellites],
 	);
@@ -30,6 +39,7 @@ const useParticles = (satellites: string[], time: Date) => {
 
 		return [
 			satRecords
+				.filter((sat) => sat !== null)
 				.map((sat) => {
 					const eci = propagate(sat.satrec, now);
 					if (eci?.position) {
@@ -51,12 +61,11 @@ const useParticles = (satellites: string[], time: Date) => {
                             <br/>
                             Altitude: ${Math.round(gdPos.height)}km`,
 							radius: 0.01,
-							color: "green"
+							color: "green",
 						};
 					}
 					return null;
-				})
-				.filter((sat) => sat !== null),
+				}),
 		];
 	}, [satRecords, time]);
 
