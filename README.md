@@ -21,6 +21,11 @@ There are a couple reasons why I made this project
 <img width="1919" height="905" alt="image" src="https://github.com/user-attachments/assets/157c0229-a71f-4d6b-8d2e-f3a7e5eb4ea1" />
 <img width="1919" height="900" alt="image" src="https://github.com/user-attachments/assets/391fc558-bfb0-40c1-9ee5-43c2bd0cdb87" />
 
+# Tech Stack
+- Frontend: React 19 + TailwindCSS
+- Satellite Data: Celestrak API
+- 3D Globe: react-globe.gl
+
 # Contributing
 Feel free to contribute by making suggestions or simply opening an issue or pull request.
 
