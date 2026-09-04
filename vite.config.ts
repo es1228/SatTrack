@@ -6,4 +6,10 @@ import { defineConfig } from "vite";
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
 	base: "/SatTrack/",
+	build: {
+		target: "esnext",
+	},
+	worker: {
+		format: "es",
+	},
 });
