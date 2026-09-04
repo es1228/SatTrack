@@ -1,0 +1,37 @@
+name: Fetch TLE Data
+
+on: 
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  update-tle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Fetch ISS TLE
+        run: |
+          curl -s "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE" > public/data/detailed.tle
+
+      - name: Fetch Full TLE
+        run: |
+          curl -s "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle" > public/data/full.tle
+
+      - name: Commit + Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/detailed.tle
+          git add public/data/full.tle
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto Update Daily TLE Data" && git push)
+
+        
+    
+  
