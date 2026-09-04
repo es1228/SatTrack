@@ -44,7 +44,7 @@ const World = () => {
 	const [trackedSat, setTrackedSat] = useTracker(
 		particlesData.flat().filter((s) => s !== null),
 		globeRef,
-		isTrackingLocked
+		isTrackingLocked,
 	);
 
 	// high res satellites data + paths
@@ -66,7 +66,7 @@ const World = () => {
 	const cachedSatObj = useMemo(() => {
 		if (!satelliteScene) return null;
 		return satelliteScene.clone();
-	}, [satelliteScene]) 
+	}, [satelliteScene]);
 
 	const handleZoom = useCallback(
 		({ lng, lat }: { lng: number; lat: number }) =>
@@ -133,7 +133,7 @@ const World = () => {
 			/>
 			<TrackerHud
 				trackedSat={trackedSat}
-				particlesData={particlesData.flat()}
+				particlesData={particlesData.flat().filter((s) => s !== null)}
 			/>
 			<SearchContainer
 				satelliteRecords={particlesData
@@ -153,7 +153,9 @@ const World = () => {
 						onClick={() => setIsTrackingLocked(!isTrackingLocked)}
 						className="mr-2 rounded-3xl bg-neutral-950/40 p-4 outline-0 backdrop-blur-3xl hover:cursor-pointer"
 					>
-						{isTrackingLocked ? "Remove Tracking Lock" : "Lock Tracking"}
+						{isTrackingLocked
+							? "Remove Tracking Lock"
+							: "Lock Tracking"}
 					</button>
 					<button
 						onClick={() => setTrackedSat(null)}
