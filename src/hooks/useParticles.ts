@@ -15,7 +15,7 @@ const useParticles = (satellites: string[], time: Date) => {
 
 				if (!lines || lines.length < 3 || !lines[1] || !lines[2])
 					return null;
-				
+
 				try {
 					return {
 						name: lines[0],
@@ -37,36 +37,35 @@ const useParticles = (satellites: string[], time: Date) => {
 		const gmst = gstime(now);
 		const EARTH_RADIUS_KM = 6371;
 
-		return [
-			satRecords
-				.filter((sat) => sat !== null)
-				.map((sat) => {
-					const eci = propagate(sat.satrec, now);
-					if (eci?.position) {
-						const gdPos = eciToGeodetic(eci.position, gmst);
-						const lat = radiansToDegrees(gdPos.latitude);
-						const lng = radiansToDegrees(gdPos.longitude);
-						const alt = gdPos.height / EARTH_RADIUS_KM;
+		return satRecords
+			.filter((sat) => sat !== null)
+			.map((sat) => {
+				const eci = propagate(sat.satrec, now);
+				if (eci?.position) {
+					const gdPos = eciToGeodetic(eci.position, gmst);
+					const lat = radiansToDegrees(gdPos.latitude);
+					const lng = radiansToDegrees(gdPos.longitude);
+					const alt = gdPos.height / EARTH_RADIUS_KM;
 
-						return {
-							...sat,
-							lat,
-							lng,
-							alt,
-							text: `<b>Name: ${sat.name}<b>
+					return {
+						...sat,
+						lat,
+						lng,
+						alt,
+						text: `<b>Name: ${sat.name}<b>
                             <br/>
                             Latitude: ${lat.toFixed(2)}°
                             <br/>
                             Longitude: ${lng.toFixed(2)}°
                             <br/>
                             Altitude: ${Math.round(gdPos.height)}km`,
-							radius: 0.01,
-							color: "green",
-						};
-					}
-					return null;
-				}),
-		];
+						radius: 0.01,
+						color: "green",
+					};
+				}
+				return null;
+			})
+			.filter((sat) => sat !== null);
 	}, [satRecords, time]);
 
 	return { particlesData };

@@ -12,7 +12,7 @@ const SearchContainer = ({
 	onClick,
 }: SearchContainerProps) => {
 	const [textInput, setTextInput] = useState("");
-	const { searchResults } = useSatelliteSearch(satelliteRecords, textInput);
+	const { searchResults } = useSatelliteSearch(satelliteRecords, textInput.toLowerCase());
 
 	return (
 		<div className="fixed top-5 left-5 space-y-2 text-white">

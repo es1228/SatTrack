@@ -84,7 +84,7 @@ const World = () => {
 				backgroundImageUrl="//cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png"
 				// Update globe rotation on shader
 				onZoom={handleZoom}
-				particlesData={particlesData}
+				particlesData={[particlesData]}
 				particleLat={(d) => (d as SatelliteData).lat}
 				particleLng={(d) => (d as SatelliteData).lng}
 				particleAltitude={(d) => (d as SatelliteData).alt}
